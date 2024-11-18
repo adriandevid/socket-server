@@ -17,6 +17,8 @@
 /// <returns>indice</returns>
 // Need to link with Ws2_32.lib
 #pragma comment(lib, "Ws2_32.lib")
+#define DEFAULT_BUFLEN 512
+#define DEFAULT_PORT "27015"
 
 int main(void) {
 	WSADATA socket_data;
@@ -55,17 +57,24 @@ int main(void) {
 		WSACleanup();
 		return 1;
 	}
-
-
-	SOCKET AcceptSocket = recv(socket_instance, NULL, NULL);
 	
-	if (AcceptSocket == INVALID_SOCKET) {
-		printf("accept connection error code: %d", WSAGetLastError());
-		closesocket(socket_instance);
-		WSACleanup();
-	}
-	else {
-		printf("client connected");
+	char recvbuf[DEFAULT_BUFLEN];
+	int recvbuflen = DEFAULT_BUFLEN;
+
+	while (true) {
+		SOCKET AcceptSocket = accept(socket_instance, NULL, NULL);
+		int recv_socket_message = recv(AcceptSocket, recvbuf, recvbuflen, 0);
+
+		//iResult = recv(ConnectSocket, recvbuf, recvbuflen, 0);
+		if (AcceptSocket > 0)
+			printf("Bytes received: %s\n", recvbuf);
+		else if (AcceptSocket == 0)
+			printf("Connection closed\n");
+		else
+			printf("recv failed: ");
+
+		if (AcceptSocket > 0)
+			return 1;
 	}
 
 	closesocket(socket_instance);
